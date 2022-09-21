@@ -7,6 +7,9 @@ import 'package:flame/gestures.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:ship_head/Game/enemy.dart';
+import 'package:ship_head/Game/enemy_manager.dart';
+import 'package:ship_head/Game/game_size.dart';
 import 'package:ship_head/Game/player.dart';
 
 class GameWorld extends BaseGame with PanDetector {
@@ -18,19 +21,21 @@ class GameWorld extends BaseGame with PanDetector {
   final double _joyStickInnerRadius = 20;
   @override
   Future<void> onLoad() async {
-    final spreadsheetFileName = "simpleSpace_sheet@2.png";
+    const spreadsheetFileName = "simpleSpace_sheet@2.png";
     await images.load(spreadsheetFileName);
     final spriteSheet = SpriteSheet.fromColumnsAndRows(
-        image: images.fromCache(spreadsheetFileName), columns: 8, rows: 6
+        image: images.fromCache(spreadsheetFileName), columns: 9, rows: 6
     );
     player = Player(
-      sprite: spriteSheet.getSpriteById(4),
+      sprite: spriteSheet.getSpriteById(0),
       size: Vector2(64, 64),
       position: viewport.canvasSize / 2,
     );
     player.anchor = Anchor.center;
-
     add(player);
+
+    EnemyManager enemyManager = EnemyManager(spriteSheet: spriteSheet);
+    add(enemyManager );
   }
 
   @override
@@ -91,5 +96,23 @@ class GameWorld extends BaseGame with PanDetector {
     _pointerStartPosition = null;
     _pointerCurrentPosition = null;
     player.setMoveDirection(Vector2.zero());
+  }
+
+  @override
+  void prepare(Component c) {
+    super.prepare(c);
+    if (c is GameSize) {
+      c.onResize(size);
+    }
+  }
+
+  @override
+  void onResize(Vector2 canvasSize) {
+    super.onResize(canvasSize);
+    //updates all components with Game Size  mixin everytime Game size is updated
+    components.whereType<GameSize>().forEach((element) {
+      element.onResize(size);
+    });
+
   }
 }
